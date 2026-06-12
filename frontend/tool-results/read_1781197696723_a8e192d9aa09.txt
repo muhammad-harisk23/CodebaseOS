@@ -1,0 +1,516 @@
+     1→'use client';
+     2→
+     3→import { motion } from 'framer-motion';
+     4→import {
+     5→  FileText, FolderGit2, GraduationCap, MessageSquare, AlertTriangle, Clock, Shield, Cpu,
+     6→  Users, FileCode, Zap, ArrowRight, ShieldAlert, Activity, Target, GitBranch, TrendingDown,
+     7→  Eye, Brain, Lightbulb, Upload, Share2, ChevronRight,
+     8→} from 'lucide-react';
+     9→import { MetricCard } from '@/components/shared/MetricCard';
+    10→import { ActionCard } from '@/components/shared/ActionCard';
+    11→import { Badge } from '@/components/ui/badge';
+    12→import { ScrollArea } from '@/components/ui/scroll-area';
+    13→import { Separator } from '@/components/ui/separator';
+    14→import { useAppStore } from '@/store/app-store';
+    15→import { dashboardMetrics } from '@/mock/metrics';
+    16→import { repositories } from '@/mock/repositories';
+    17→import { agentActions } from '@/mock/actions';
+    18→import { survivabilityData } from '@/mock/survivability';
+    19→import { recoverabilityData } from '@/mock/recoverability';
+    20→import { busFactorData } from '@/mock/bus-factor';
+    21→import { riskCenterData } from '@/mock/risk-center';
+    22→import { ownershipEnhancedData } from '@/mock/ownership-enhanced';
+    23→import { agentFeedItems } from '@/mock/agent-feed';
+    24→import { activityFeedData } from '@/mock/activity-feed';
+    25→import { recommendationsData } from '@/mock/recommendations';
+    26→import { cn } from '@/lib/utils';
+    27→import type { ViewId } from '@/types';
+    28→
+    29→const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } };
+    30→const fadeUp = {
+    31→  hidden: { opacity: 0, y: 16 },
+    32→  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' as const } },
+    33→};
+    34→
+    35→const statusColors: Record<string, string> = {
+    36→  completed: 'bg-emerald-accent/15 text-emerald-accent',
+    37→  running: 'bg-electric/15 text-electric',
+    38→  pending: 'bg-amber-accent/15 text-amber-accent',
+    39→  failed: 'bg-danger-accent/15 text-danger-accent',
+    40→};
+    41→
+    42→export function DashboardView() {
+    43→  const { selectedRepositoryId, setCurrentView } = useAppStore();
+    44→  const repo = repositories.find((r) => r.id === selectedRepositoryId) ?? repositories[0];
+    45→  const recentActions = agentActions.slice(0, 3);
+    46→  const nav = (view: ViewId) => () => setCurrentView(view);
+    47→
+    48→  const reportItems = [
+    49→    { label: 'Knowledge Debt', value: repo.knowledgeDebt, max: 100, icon: AlertTriangle, color: 'text-danger-accent' },
+    50→    { label: 'Survivability', value: repo.survivability, max: 100, icon: Shield, color: 'text-amber-accent' },
+    51→    { label: 'Recoverability', value: repo.recoverability, max: 100, icon: Zap, color: 'text-amber-accent' },
+    52→    { label: 'Critical Risks', value: repo.criticalRisks, max: 10, icon: AlertTriangle, color: 'text-danger-accent' },
+    53→    { label: 'Architecture Complexity', value: repo.architectureComplexity === 'Critical' ? 10 : repo.architectureComplexity === 'High' ? 7 : repo.architectureComplexity === 'Medium' ? 4 : 1, max: 10, icon: Cpu, color: repo.architectureComplexity === 'High' || repo.architectureComplexity === 'Critical' ? 'text-danger-accent' : 'text-amber-accent' },
+    54→    { label: 'Estimated Onboarding', value: 0, max: 1, icon: Clock, color: 'text-muted-foreground', display: repo.estimatedOnboardingTime },
+    55→  ];
+    56→
+    57→  const heroMetrics = [
+    58→    { title: 'Survivability Score™', value: `${survivabilityData.score}/${survivabilityData.max}`, color: 'text-danger-accent', border: 'border-t-danger-accent', badge: 'High Risk', badgeClass: 'bg-danger-accent/15 text-danger-accent', desc: 'Measures the repository\'s ability to evolve safely if the primary contributor leaves.', trend: 'down' as const },
+    59→    { title: 'Recoverability Score™', value: `${recoverabilityData.score}/${recoverabilityData.max}`, color: 'text-amber-accent', border: 'border-t-amber-accent', badge: 'Rebuild Recommended', badgeClass: 'bg-amber-accent/15 text-amber-accent', desc: 'Evaluates whether refactoring or a full rebuild is the more cost-effective path forward.', trend: 'down' as const },
+    60→    { title: 'Bus Factor™', value: `${busFactorData.score}/${busFactorData.totalContributors}`, color: 'text-danger-accent', border: 'border-t-danger-accent', badge: 'Critical', badgeClass: 'bg-danger-accent/15 text-danger-accent', desc: 'The number of contributors who could leave before the repository becomes unmaintainable.', trend: 'flat' as const },
+    61→    { title: 'Ownership Health', value: '23%', color: 'text-amber-accent', border: 'border-t-amber-accent', badge: 'Concentrated', badgeClass: 'bg-amber-accent/15 text-amber-accent', desc: 'Average ownership distribution across modules that are not yet classified as knowledge silos.', trend: 'down' as const },
+    62→  ];
+    63→
+    64→  const riskSnapshotItems = [
+    65→    { icon: AlertTriangle, label: 'Overall Risk', value: 'HIGH', color: 'text-danger-accent', badgeClass: 'bg-danger-accent/15 text-danger-accent', glow: true, sub: 'Across all risk categories' },
+    66→    { icon: Shield, label: 'Recoverability', value: `${recoverabilityData.score}/100`, color: 'text-amber-accent', badgeClass: 'bg-amber-accent/15 text-amber-accent', glow: false, sub: 'Rebuild recommended' },
+    67→    { icon: Activity, label: 'Critical Risks', value: '4', color: 'text-danger-accent', badgeClass: 'bg-danger-accent/15 text-danger-accent', glow: false, sub: 'Require immediate attention' },
+    68→    { icon: Target, label: 'Knowledge Concentration', value: 'Alice Chen holds 72% of critical knowledge', color: 'text-danger-accent', badgeClass: 'text-danger-accent text-[10px]', glow: false, sub: '' },
+    69→    { icon: GitBranch, label: 'Ownership Health', value: '3 of 5 modules are knowledge silos', color: 'text-amber-accent', badgeClass: 'text-amber-accent text-[10px]', glow: false, sub: '' },
+    70→  ];
+    71→
+    72→  const survivabilityCards = [
+    73→    { label: 'Survivability', metric: '34/100 — High Risk', color: 'border-l-danger-accent', valueClass: 'text-danger-accent', text: 'The repository cannot safely evolve without its primary contributor. 3 of 5 modules have no documented backup.' },
+    74→    { label: 'Recoverability', metric: '38/100 — Rebuild Recommended', color: 'border-l-amber-accent', valueClass: 'text-amber-accent', text: 'Refactoring would cost more than rebuilding core modules. 18% of the codebase is dead code from previous iterations.' },
+    75→    { label: 'Bus Factor', metric: '1 out of 3 — Critical', color: 'border-l-danger-accent', valueClass: 'text-danger-accent', text: 'A single departure would immediately cripple 4 critical modules including authentication and infrastructure.' },
+    76→    { label: 'Ownership', metric: '72% concentrated in 1 person', color: 'border-l-danger-accent', valueClass: 'text-danger-accent', text: 'Knowledge concentration creates unacceptable organizational risk with no documented succession plan.' },
+    77→  ];
+    78→
+    79→  const pipelineSteps = [
+    80→    { icon: 'Upload', label: 'Repository Upload', status: 'completed', color: 'text-emerald-accent' },
+    81→    { icon: 'GitBranch', label: 'Repository Analysis', status: 'completed', color: 'text-emerald-accent' },
+    82→    { icon: 'Brain', label: 'Repository Memory', status: 'completed', color: 'text-emerald-accent' },
+    83→    { icon: 'Share2', label: 'Knowledge Graph', status: 'completed', color: 'text-emerald-accent' },
+    84→    { icon: 'ShieldAlert', label: 'Risk Detection', status: 'completed', color: 'text-emerald-accent' },
+    85→    { icon: 'Lightbulb', label: 'Recommendations', status: 'completed', color: 'text-emerald-accent' },
+    86→    { icon: 'FolderGit2', label: 'GitLab Actions', status: 'completed', color: 'text-emerald-accent' },
+    87→    { icon: 'MessageSquare', label: 'Knowledge Transfer', status: 'completed', color: 'text-emerald-accent' },
+    88→  ];
+    89→
+    90→  return (
+    91→    <motion.div className="p-4 md:p-6 lg:p-8 space-y-8" variants={stagger} initial="hidden" animate="show">
+    92→      {/* Page Header */}
+    93→      <motion.div variants={fadeUp}>
+    94→        <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
+    95→        <p className="mt-1 text-sm text-muted-foreground">{repo.fullName}</p>
+    96→      </motion.div>
+    97→
+    98→      {/* Top Metrics Row */}
+    99→      <motion.div variants={fadeUp} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+   100→        {dashboardMetrics.map((m, i) => (
+   101→          <MetricCard key={m.label} metric={m} index={i} />
+   102→        ))}
+   103→      </motion.div>
+   104→
+   105→      <motion.div variants={fadeUp} className="flex items-center gap-2 text-xs text-muted-foreground">
+   106→        <div className="h-px flex-1 bg-glass-border" />
+   107→        <span>Survival Analysis</span>
+   108→        <div className="h-px flex-1 bg-glass-border" />
+   109→      </motion.div>
+   110→
+   111→      {/* Differentiator Hero Metrics */}
+   112→      <motion.div variants={fadeUp} className="glass-card rounded-xl border border-electric/20 p-6 glow-blue">
+   113→        <div className="mb-5">
+   114→          <h2 className="text-lg font-semibold text-foreground">Repository Survival Assessment</h2>
+   115→          <p className="text-sm text-muted-foreground mt-0.5">Can this repository survive without its creator?</p>
+   116→          <p className="text-[10px] text-muted-foreground mt-1">Based on {ownershipEnhancedData.modules.length} modules, {busFactorData.totalContributors} contributors, and {riskCenterData.topRisks.length} identified risks.</p>
+   117→        </div>
+   118→        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+   119→          {heroMetrics.map((m) => (
+   120→            <div key={m.title} className={cn('glass-card rounded-lg border border-glass-border border-t-[3px] p-4', m.border)}>
+   121→              <div className="flex items-center justify-between mb-1">
+   122→                <p className="text-xs text-muted-foreground">{m.title}</p>
+   123→                {m.trend === 'down' && <TrendingDown className="h-3 w-3 text-danger-accent" />}
+   124→              </div>
+   125→              <p className={cn('text-2xl font-bold tracking-tight', m.color)}>{m.value}</p>
+   126→              <Badge variant="outline" className={cn('mt-2 text-[10px] px-1.5 py-0', m.badgeClass)}>{m.badge}</Badge>
+   127→              <p className="mt-2.5 text-[10px] text-muted-foreground leading-relaxed">{m.desc}</p>
+   128→            </div>
+   129→          ))}
+   130→        </div>
+   131→      </motion.div>
+   132→
+   133→      {/* Agent Pipeline */}
+   134→      <motion.div variants={fadeUp} className="space-y-4">
+   135→        <div className="flex items-center justify-between">
+   136→          <h2 className="text-lg font-semibold text-foreground">Agent Pipeline</h2>
+   137→          <Badge variant="outline" className="border-electric/50 text-electric">Active</Badge>
+   138→        </div>
+   139→
+   140→        <div className="glass-card rounded-xl border border-glass-border p-5 overflow-x-auto">
+   141→          <div className="flex items-center gap-2 min-w-max">
+   142→            {pipelineSteps.map((step, i) => {
+   143→              let Icon = Activity;
+   144→              try {
+   145→                const icons = require('lucide-react');
+   146→                Icon = icons[step.icon] || icons.default?.[step.icon] || Activity;
+   147→              } catch {
+   148→                Icon = Activity;
+   149→              }
+   150→              return (
+   151→                <div key={i} className="flex items-center gap-3 shrink-0">
+   152→                  <div className={cn('flex h-8 w-8 items-center justify-center rounded-full border-2', step.status === 'completed' ? 'border-emerald-accent/50 bg-emerald-accent/10' : 'border-glass-border bg-surface-inset')}>
+   153→                    <Icon className={cn('h-4 w-4', step.color)} />
+   154→                  </div>
+   155→                  <div className="min-w-0">
+   156→                    <p className="text-xs font-medium text-foreground">{step.label}</p>
+   157→                    <p className="text-[10px] text-muted-foreground capitalize">{step.status}</p>
+   158→                  </div>
+   159→                  {i < pipelineSteps.length - 1 && (
+   160→                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+   161→                  )}
+   162→                </div>
+   163→              );
+   164→            })}
+   165→          </div>
+   166→        </div>
+   167→      </motion.div>
+   168→
+   169→      {/* Repository Intelligence Report */}
+   170→      <motion.div variants={fadeUp} className="glass-card rounded-xl p-6 border border-glass-border">
+   171→        <div className="flex items-center gap-3 mb-6">
+   172→          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-electric/15">
+   173→            <FileCode className="h-5 w-5 text-electric" />
+   174→          </div>
+   175→          <div>
+   176→            <h2 className="text-lg font-semibold text-foreground">Repository Intelligence Report</h2>
+   177→            <p className="text-xs text-muted-foreground">Analysis completed {new Date(repo.lastAnalyzed).toLocaleDateString()}</p>
+   178→          </div>
+   179→        </div>
+   180→
+   181→        <p className="text-xs text-muted-foreground mb-4">Comprehensive analysis across {reportItems.length} key dimensions of repository health and risk.</p>
+   182→
+   183→        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+   184→          {reportItems.map((item) => (
+   185→            <div key={item.label} className="flex items-center gap-3 rounded-lg bg-surface-inset p-3">
+   186→              <item.icon className={`h-4 w-4 shrink-0 ${item.color}`} />
+   187→              <div className="min-w-0 flex-1">
+   188→                <p className="text-xs text-muted-foreground">{item.label}</p>
+   189→                <p className="text-sm font-semibold text-foreground">
+   190→                  {item.display ?? `${item.value}${item.max === 100 ? '/100' : `/${item.max}`}`}
+   191→                </p>
+   192→              </div>
+   193→            </div>
+   194→          ))}
+   195→        </div>
+   196→
+   197→        {/* Biggest Risk Callout */}
+   198→        <div className="rounded-lg border border-danger-accent/30 bg-danger-accent/5 p-4">
+   199→          <div className="flex items-start gap-3">
+   200→            <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0 text-danger-accent" />
+   201→            <div>
+   202→              <p className="text-sm font-semibold text-danger-accent">Biggest Risk</p>
+   203→              <p className="mt-1 text-sm text-foreground">{repo.biggestRisk}</p>
+   204→            </div>
+   205→          </div>
+   206→        </div>
+   207→
+   208→        {/* Top Risk Categories Summary */}
+   209→        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+   210→          {riskCenterData.riskCategories.slice(0, 4).map((cat) => (
+   211→            <div key={cat.category} className="rounded-md bg-surface-inset p-2.5 text-center">
+   212→              <p className="text-[10px] text-muted-foreground">{cat.category}</p>
+   213→              <p className={cn(
+   214→                'text-sm font-bold tabular-nums',
+   215→                cat.score > 75 ? 'text-danger-accent' : cat.score > 50 ? 'text-amber-accent' : 'text-emerald-accent',
+   216→              )}>
+   217→                {cat.score}/{cat.max}
+   218→              </p>
+   219→              <p className="text-[10px] text-muted-foreground">{cat.riskCount} risk{cat.riskCount !== 1 ? 's' : ''}</p>
+   220→            </div>
+   221→          ))}
+   222→        </div>
+   223→      </motion.div>
+   224→
+   225→      {/* Repository Risk Snapshot */}
+   226→      <motion.div variants={fadeUp} className="glass-card rounded-xl border border-glass-border p-5">
+   227→        <div className="flex items-center justify-between mb-1">
+   228→          <h2 className="text-lg font-semibold text-foreground">Repository Risk Snapshot</h2>
+   229→          <Badge variant="outline" className="bg-danger-accent/15 text-danger-accent text-[10px]">{riskCenterData.overallStatus.risk} RISK</Badge>
+   230→        </div>
+   231→        <p className="text-xs text-muted-foreground mb-4">Primary concern: {riskCenterData.overallStatus.primaryConcern}</p>
+   232→        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+   233→          {riskSnapshotItems.map((s) => (
+   234→            <div key={s.label} className={cn('glass-card rounded-lg border border-glass-border p-3', s.glow && 'glow-danger')}>
+   235→              <s.icon className={cn('h-4 w-4 mb-2', s.color)} />
+   236→              <p className="text-[10px] text-muted-foreground mb-0.5">{s.label}</p>
+   237→              <p className={cn('text-xs font-semibold leading-snug', s.badgeClass)}>{s.value}</p>
+   238→              {s.sub && <p className="text-[10px] text-muted-foreground mt-1">{s.sub}</p>}
+   239→            </div>
+   240→          ))}
+   241→        </div>
+   242→
+   243→        {/* Primary Concern Callout */}
+   244→        <div className="mt-3 rounded-md border border-danger-accent/20 bg-danger-accent/[0.03] p-3">
+   245→          <div className="flex items-center gap-1.5 mb-1">
+   246→            <AlertTriangle className="h-3 w-3 text-danger-accent" />
+   247→            <p className="text-[10px] text-danger-accent font-semibold uppercase tracking-wide">Primary Concern</p>
+   248→          </div>
+   249→          <p className="text-xs text-foreground">{riskCenterData.overallStatus.primaryConcern}. Immediate action recommended to prevent catastrophic knowledge loss.</p>
+   250→        </div>
+   251→      </motion.div>
+   252→
+   253→      {/* Can This Repository Survive? */}
+   254→      <motion.div variants={fadeUp} className="glass-card rounded-xl border border-electric/30 p-5">
+   255→        <h2 className="text-lg font-semibold text-foreground mb-1">Can this repository survive?</h2>
+   256→        <p className="text-xs text-muted-foreground mb-4">Aggregated assessment from survivability, recoverability, bus factor, and ownership analysis.</p>
+   257→        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+   258→          {survivabilityCards.map((item) => (
+   259→            <div key={item.label} className={cn('rounded-lg border border-glass-border border-l-[3px] bg-surface-inset p-3.5', item.color)}>
+   260→              <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">{item.label}</p>
+   261→              <p className={cn('text-sm font-bold mb-1', item.valueClass)}>{item.metric}</p>
+   262→              <p className="text-xs text-muted-foreground leading-relaxed">{item.text}</p>
+   263→            </div>
+   264→          ))}
+   265→        </div>
+   266→        <div className="flex flex-wrap gap-3">
+   267→          <button onClick={nav('risk-center')} className="flex items-center gap-1.5 rounded-lg bg-electric/15 px-4 py-2 text-xs font-medium text-electric hover:bg-electric/25 transition-colors">
+   268→            View Full Analysis <ArrowRight className="h-3 w-3" />
+   269→          </button>
+   270→          <button onClick={nav('agent-actions')} className="flex items-center gap-1.5 rounded-lg bg-surface-inset border border-glass-border px-4 py-2 text-xs font-medium text-foreground hover:bg-muted/50 transition-colors">
+   271→            Start Risk Mitigation <ArrowRight className="h-3 w-3" />
+   272→          </button>
+   273→        </div>
+   274→      </motion.div>
+   275→
+   276→      {/* Risk Recommendations */}
+   277→      <motion.div variants={fadeUp} className="space-y-4">
+   278→        <div>
+   279→          <h2 className="text-lg font-semibold text-foreground">Recommended Actions</h2>
+   280→          <p className="text-xs text-muted-foreground mt-0.5">Priority-ranked actions to reduce repository risk and improve team resilience.</p>
+   281→        </div>
+   282→        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+   283→          <ActionCard
+   284→            icon={FileText}
+   285→            title="Generate Documentation"
+   286→            description="Automatically generate comprehensive documentation for the most critical undocumented modules."
+   287→            variant="primary"
+   288→            onClick={nav('documentation')}
+   289→          />
+   290→          <ActionCard
+   291→            icon={FolderGit2}
+   292→            title="Create GitLab Issue"
+   293→            description="Create prioritized GitLab issues for the top detected risks with detailed remediation steps."
+   294→            onClick={nav('gitlab-actions')}
+   295→          />
+   296→          <ActionCard
+   297→            icon={GraduationCap}
+   298→            title="Generate Learning Mission"
+   299→            description="Build a structured learning path tailored to the highest-risk knowledge areas."
+   300→            onClick={nav('learning-missions')}
+   301→          />
+   302→          <ActionCard
+   303→            icon={MessageSquare}
+   304→            title="Start Knowledge Interview"
+   305→            description="Begin an interactive knowledge capture session to extract institutional knowledge."
+   306→            onClick={nav('knowledge-interview')}
+   307→          />
+   308→          <ActionCard
+   309→            icon={Users}
+   310→            title="Transfer Knowledge"
+   311→            description="Initiate structured knowledge transfer sessions for the highest-risk siloed modules to distribute expertise across the team."
+   312→            variant="danger"
+   313→            onClick={nav('knowledge-interview')}
+   314→          />
+   315→          <ActionCard
+   316→            icon={ShieldAlert}
+   317→            title="Assess Bus Factor"
+   318→            description="Run a deep bus factor analysis to identify single points of failure and quantify departure risk for each contributor."
+   319→            onClick={nav('bus-factor')}
+   320→          />
+   321→          <ActionCard
+   322→            icon={Zap}
+   323→            title="Patch Dependency Vulnerabilities"
+   324→            description={recommendationsData.high.find(r => r.id === 'rec-1')?.description.slice(0, 140) + '...' || 'Patch critical CVEs in production dependencies including a token verification bypass vector.'}
+   325→            variant="danger"
+   326→            onClick={nav('risk-center')}
+   327→          />
+   328→          <ActionCard
+   329→            icon={GitBranch}
+   330→            title="Break Circular Dependencies"
+   331→            description={recommendationsData.high.find(r => r.id === 'rec-3')?.description.slice(0, 140) + '...' || 'Resolve the 5-module circular dependency chain that prevents isolated testing and causes deployment fragility.'}
+   332→            onClick={nav('architecture')}
+   333→          />
+   334→        </div>
+   335→      </motion.div>
+   336→
+   337→      {/* Agent Insights */}
+   338→      <motion.div variants={fadeUp} className="space-y-4">
+   339→        <div className="flex items-center justify-between">
+   340→          <h2 className="text-lg font-semibold text-foreground">Agent Insights</h2>
+   341→          <button onClick={nav('risk-center')} className="flex items-center gap-1 text-xs font-medium text-electric hover:underline">
+   342→            View Risk Center <ArrowRight className="h-3 w-3" />
+   343→          </button>
+   344→        </div>
+   345→
+   346→        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+   347→          {/* Insight 1: Knowledge Concentration */}
+   348→          <motion.div variants={fadeUp} className="glass-card rounded-xl border border-danger-accent/30 p-5">
+   349→            <div className="flex items-center gap-2 mb-2">
+   350→              <AlertTriangle className="h-4 w-4 text-danger-accent" />
+   351→              <span className="text-xs font-semibold text-danger-accent">Critical</span>
+   352→            </div>
+   353→            <h3 className="text-sm font-semibold text-foreground mb-1">Knowledge Concentration Detected</h3>
+   354→            <p className="text-xs text-muted-foreground leading-relaxed">
+   355→              Alice Chen holds 72% of critical module knowledge. If Alice departs, the organization
+   356→              loses the ability to safely modify authentication, infrastructure, and API gateway modules.
+   357→              Immediate knowledge transfer is required to prevent a single-point-of-failure scenario.
+   358→            </p>
+   359→          </motion.div>
+   360→
+   361→          {/* Insight 2: Survivability */}
+   362→          <motion.div variants={fadeUp} className="glass-card rounded-xl border border-amber-accent/30 p-5">
+   363→            <div className="flex items-center gap-2 mb-2">
+   364→              <AlertTriangle className="h-4 w-4 text-amber-accent" />
+   365→              <span className="text-xs font-semibold text-amber-accent">Warning</span>
+   366→            </div>
+   367→            <h3 className="text-sm font-semibold text-foreground mb-1">Repository Survivability Critical</h3>
+   368→            <p className="text-xs text-muted-foreground leading-relaxed">
+   369→              With a survivability score of 34/100 and bus factor of 1, this repository cannot safely evolve
+   370→              without its primary contributor. The risk assessment recommends immediate documentation
+   371→              and ownership transfer as the highest priority actions.
+   372→            </p>
+   373→          </motion.div>
+   374→
+   375→          {/* Insight 3: Recoverability */}
+   376→          <motion.div variants={fadeUp} className="glass-card rounded-xl border border-purple-glow/30 p-5">
+   377→            <div className="flex items-center gap-2 mb-2">
+   378→              <Lightbulb className="h-4 w-4 text-purple-glow" />
+   379→              <span className="text-xs font-semibold text-purple-glow">Insight</span>
+   380→            </div>
+   381→            <h3 className="text-sm font-semibold text-foreground mb-1">Low Recoverability Score</h3>
+   382→            <p className="text-xs text-muted-foreground leading-relaxed">
+   383→              Score of 38/100 indicates rebuilding core modules would be more cost-effective than refactoring.
+   384→              The authentication and infrastructure modules are the primary candidates for a rebuild
+   385→              approach, while payment and database systems can be retained.
+   386→            </p>
+   387→          </motion.div>
+   388→        </div>
+   389→      </motion.div>
+   390→
+   391→      {/* GitLab Actions Widget */}
+   392→      <motion.div variants={fadeUp} className="space-y-4">
+   393→        <div className="flex items-center justify-between">
+   394→          <h2 className="text-lg font-semibold text-foreground">GitLab Actions</h2>
+   395→          <button onClick={nav('gitlab-actions')} className="flex items-center gap-1 text-xs font-medium text-electric hover:underline">
+   396→            View All Actions <ArrowRight className="h-3 w-3" />
+   397→          </button>
+   398→        </div>
+   399→
+   400→        <div className="glass-card rounded-xl border border-glass-border p-5">
+   401→          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+   402→            <div className="text-center p-2 rounded-lg bg-surface-inset">
+   403→              <p className="text-lg font-bold text-foreground">{activityFeedData.summary.issuesCreated}</p>
+   404→              <p className="text-[10px] text-muted-foreground">Issues Created</p>
+   405→            </div>
+   406→            <div className="text-center p-2 rounded-lg bg-surface-inset">
+   407→              <p className="text-lg font-bold text-foreground">{activityFeedData.summary.tasksGenerated}</p>
+   408→              <p className="text-[10px] text-muted-foreground">Tasks Generated</p>
+   409→            </div>
+   410→            <div className="text-center p-2 rounded-lg bg-surface-inset">
+   411→              <p className="text-lg font-bold text-foreground">{activityFeedData.summary.documentationGenerated}</p>
+   412→              <p className="text-[10px] text-muted-foreground">Docs Generated</p>
+   413→            </div>
+   414→            <div className="text-center p-2 rounded-lg bg-surface-inset">
+   415→              <p className="text-lg font-bold text-foreground">{activityFeedData.summary.knowledgeCaptured}</p>
+   416→              <p className="text-[10px] text-muted-foreground">Knowledge Captured</p>
+   417→            </div>
+   418→          </div>
+   419→
+   420→          <Separator className="bg-glass-border" />
+   421→
+   422→          <ScrollArea className="max-h-[300px] overflow-auto scrollbar-thin">
+   423→            <div className="space-y-2">
+   424→              {activityFeedData.items.slice(0, 6).map((item) => (
+   425→                <div key={item.id} className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-surface-inset/50 transition-colors">
+   426→                  <Badge variant="outline" className={cn(
+   427→                    'text-[10px] shrink-0',
+   428→                    item.type === 'issue_created' ? 'border-danger-accent/50 text-danger-accent' :
+   429→                    item.type === 'documentation_generated' ? 'border-electric/50 text-electric' :
+   430→                    item.type === 'mission_generated' ? 'border-purple-glow/50 text-purple-glow' :
+   431→                    'border-glass-border text-muted-foreground'
+   432→                  )}>
+   433→                    {item.title}
+   434→                  </Badge>
+   435→                  <span className="text-[10px] text-muted-foreground flex-1 truncate">{item.description}</span>
+   436→                </div>
+   437→              ))}
+   438→            </div>
+   439→          </ScrollArea>
+   440→        </div>
+   441→      </motion.div>
+   442→
+   443→      {/* Recent Agent Actions */}
+   444→      <motion.div variants={fadeUp} className="space-y-4">
+   445→        <div className="flex items-center justify-between">
+   446→          <div>
+   447→            <h2 className="text-lg font-semibold text-foreground">Recent Agent Actions</h2>
+   448→            <p className="text-xs text-muted-foreground mt-0.5">Latest automated analysis and remediation activities.</p>
+   449→          </div>
+   450→          <button
+   451→            onClick={nav('agent-actions')}
+   452→            className="flex items-center gap-1 text-xs font-medium text-electric hover:underline"
+   453→          >
+   454→            View all <ArrowRight className="h-3 w-3" />
+   455→          </button>
+   456→        </div>
+   457→        <div className="glass-card rounded-xl border border-glass-border divide-y divide-glass-border overflow-hidden">
+   458→          {recentActions.map((action) => (
+   459→            <div key={action.id} className="flex items-center gap-4 p-4 hover:bg-surface-inset transition-colors">
+   460→              <div className="flex-1 min-w-0">
+   461→                <p className="text-sm font-medium text-foreground truncate">{action.title}</p>
+   462→                <p className="text-xs text-muted-foreground mt-0.5 truncate">{action.description}</p>
+   463→              </div>
+   464→              <Badge variant="outline" className={statusColors[action.status]}>
+   465→                {action.status}
+   466→              </Badge>
+   467→            </div>
+   468→          ))}
+   469→        </div>
+   470→      </motion.div>
+   471→
+   472→      {/* Agent Activity Feed */}
+   473→      <motion.div variants={fadeUp} className="space-y-4">
+   474→        <div className="flex items-center justify-between">
+   475→          <h2 className="text-lg font-semibold text-foreground">Agent Activity</h2>
+   476→          <button onClick={nav('agent-actions')} className="flex items-center gap-1 text-xs font-medium text-electric hover:underline">
+   477→            View All Agent Actions <ArrowRight className="h-3 w-3" />
+   478→          </button>
+   479→        </div>
+   480→
+   481→        <div className="glass-card rounded-xl border border-glass-border p-5">
+   482→          <div className="flex items-center gap-2 mb-4">
+   483→            <Activity className="h-4 w-4 text-electric" />
+   484→            <span className="text-sm font-medium text-foreground">Live Agent Feed</span>
+   485→            <div className="ml-auto flex items-center gap-1.5">
+   486→              <span className="h-2 w-2 rounded-full bg-emerald-accent animate-pulse" />
+   487→              <span className="text-[10px] text-emerald-accent">Live</span>
+   488→            </div>
+   489→          </div>
+   490→
+   491→          <ScrollArea className="max-h-[400px] overflow-auto scrollbar-thin">
+   492→            <div className="space-y-2">
+   493→              {agentFeedItems.slice(0, 8).map((item) => (
+   494→                <div key={item.id} className="flex gap-3 p-3 rounded-lg bg-surface-inset/50 hover:bg-surface-inset transition-colors">
+   495→                  <div className={cn('w-0.5 self-stretch rounded-full', item.riskLevel === 'critical' ? 'bg-danger-accent' : item.riskLevel === 'high' ? 'bg-amber-accent' : item.riskLevel === 'medium' ? 'bg-electric' : item.riskLevel === 'low' ? 'bg-emerald-accent' : 'bg-muted')} />
+   496→                  <Activity className={cn('h-4 w-4 shrink-0 mt-0.5', item.riskLevel === 'critical' ? 'text-danger-accent' : item.riskLevel === 'high' ? 'text-amber-accent' : 'text-electric')} />
+   497→                  <div className="flex-1 min-w-0">
+   498→                    <div className="flex items-center gap-1.5 mb-1">
+   499→                      <span className="text-xs font-semibold text-foreground">{item.title}</span>
+   500→                      <Badge variant="outline" className="text-[10px] border-glass-border text-muted-foreground">{item.module}</Badge>
+   501→                      <Badge variant="outline" className="text-[10px] border-glass-border">
+   502→                        {Math.round(item.confidence * 100)}%
+   503→                      </Badge>
+   504→                    </div>
+   505→                    <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">{item.reasoning}</p>
+   506→                  </div>
+   507→                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">{item.timestamp}</span>
+   508→                </div>
+   509→              ))}
+   510→            </div>
+   511→          </ScrollArea>
+   512→        </div>
+   513→      </motion.div>
+   514→    </motion.div>
+   515→  );
+   516→}

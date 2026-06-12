@@ -1,0 +1,73 @@
+import type { Repository } from '@/types';
+
+export const repositories: Repository[] = [
+  {
+    id: 'repo-1',
+    name: 'nextjs-commerce-platform',
+    fullName: 'acme-corp/nextjs-commerce-platform',
+    description:
+      'Full-stack e-commerce platform built with Next.js 14, featuring product catalog, cart management, checkout with Stripe integration, and a custom CMS for marketing content. Handles ~12K daily active users across 3 regions.',
+    language: 'TypeScript',
+    stars: 342,
+    lastAnalyzed: '2025-01-14T09:23:00Z',
+    knowledgeDebt: 81,
+    survivability: 34,
+    recoverability: 38,
+    busFactor: 1,
+    criticalRisks: 4,
+    architectureComplexity: 'High',
+    estimatedOnboardingTime: '6-8 weeks',
+    biggestRisk:
+      'Authentication spread across 12 files with no documentation.',
+    status: 'complete',
+    files: 1847,
+    dependencies: 312,
+    contributors: 3,
+  },
+  {
+    id: 'repo-2',
+    name: 'python-ml-pipeline',
+    fullName: 'acme-corp/python-ml-pipeline',
+    description:
+      'End-to-end machine learning pipeline for product recommendation engine. Includes data ingestion from PostgreSQL and S3, feature engineering with Pandas, model training with XGBoost and PyTorch, batch scoring via Apache Airflow DAGs, and real-time inference served through FastAPI.',
+    language: 'Python',
+    stars: 128,
+    lastAnalyzed: '2025-01-13T14:07:00Z',
+    knowledgeDebt: 42,
+    survivability: 67,
+    recoverability: 58,
+    busFactor: 2,
+    criticalRisks: 2,
+    architectureComplexity: 'Medium',
+    estimatedOnboardingTime: '3-4 weeks',
+    biggestRisk:
+      'Feature engineering notebooks are not version-controlled and exist only on the lead data scientist\'s local machine.',
+    status: 'complete',
+    files: 438,
+    dependencies: 187,
+    contributors: 5,
+  },
+  {
+    id: 'repo-3',
+    name: 'react-admin-dashboard',
+    fullName: 'acme-corp/react-admin-dashboard',
+    description:
+      'Internal admin dashboard for managing orders, inventory, customer support tickets, and analytics. Built with React 18, TanStack Query for server state, Recharts for visualizations, and a custom RBAC system. Used by 45 internal staff members daily.',
+    language: 'TypeScript',
+    stars: 56,
+    lastAnalyzed: '2025-01-12T11:45:00Z',
+    knowledgeDebt: 58,
+    survivability: 51,
+    recoverability: 47,
+    busFactor: 2,
+    criticalRisks: 3,
+    architectureComplexity: 'Medium',
+    estimatedOnboardingTime: '4-5 weeks',
+    biggestRisk:
+      'Role-based access control logic is tightly coupled to UI components with no centralized policy engine, making permission changes error-prone.',
+    status: 'complete',
+    files: 924,
+    dependencies: 241,
+    contributors: 4,
+  },
+];
