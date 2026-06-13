@@ -1,2 +1,25 @@
 .env
-node_modules
+
+
+docs/
+dist/
+logs/
+.next/
+coverage/
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+.next/
+
+# Logs
+logs/
+*.log
+backend/logs/
+
+# Env
+.env
+.env.*
